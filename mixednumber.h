@@ -17,6 +17,7 @@ class mixedNumber : public Fraction {
 private:
     void copy(const mixedNumber& other);
     void copy(const Fraction& other);
+    void inputCheck(const std::string &temp, bool &slash, bool &underScore, bool &dash);
 
 public:
     mixedNumber();

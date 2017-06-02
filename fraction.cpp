@@ -152,6 +152,9 @@ std::ostream &operator<<(std::ostream &out, const Fraction &x) {
 
 std::istream &operator>>(std::istream &in, Fraction &x) {
     char junk;
+    std::string test;
+    in >> test;
+    std::cout << test << std::endl;
     in >> x.m_num >> junk >> x.m_denom;
     x.reduce();
     return in;

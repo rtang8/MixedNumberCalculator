@@ -2,8 +2,7 @@
 
 /// CONSTRUCTORS
 ///
-mixedNumber::mixedNumber() {
-}
+mixedNumber::mixedNumber() {}
 
 mixedNumber::~mixedNumber() {}
 
@@ -93,57 +92,87 @@ std::ostream &operator<<(std::ostream &out, const mixedNumber &x) {
     return out;
 }
 
-/*std::istream &operator>>(std::istream &in, mixedNumber &x) {
-
-    char ch;
+std::istream &operator>>(std::istream &in, mixedNumber &x) {
 
     // Throws away leading whitespaces
-    do {
-        in.get(ch);
-    } while(ch == ' ');
-
-    // Booleans track existance of characters
-    bool slash = false;
-    bool underScore = false;
-    bool dot = false;
-    bool dash = false;
-    std::string temp;
-    std::stringstream toString;
+    char ch;
+    do { in.get(ch); } while(ch == ' ');
 
     // Converts user input into string
+    std::stringstream toString;
+    std::string temp;
     do {
-          toString << ch;
-          in.get(ch);
+        toString << ch;
+        in.get(ch);
     } while (ch != '\n' && !in.eof());
 
     toString >> temp;
 
     // Throws error if input is too long
-    if(&in == &std::cin && temp.length() > 15) {
-        throw INPUT_TOO_LONG;
+    if(&in == &std::cin && temp.length() > 15) throw INPUT_TOO_LONG;
+
+    // Checks input for all possible errors
+    bool slash = false, underScore = false, dash = false;
+    x.inputCheck(temp, slash, underScore, dash);
+
+    /// CONVERSIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    // Puts string into mixed number
+    if(underScore && slash) {
+
+        size_t uSLoc = temp.find('_');
+        size_t slLoc = temp.find('/');
+
+        // Builds the whole part
+        std::string whole = temp.substr(0, uSLoc);
+        if(dash) whole = whole.substr(1);
+
+        // Builds fraction part
+        std::string num = temp.substr(uSLoc + 1, (slLoc - uSLoc - 1));
+        std::string denom = temp.substr(slLoc + 1);
+
+        // Puts both parts together and makes negative if needed
+        x.set(atoi(denom.c_str()) * atoi(whole.c_str()) + atoi(num.c_str()), atoi(denom.c_str()));
+        if(dash) x *= -1;
     }
 
-    /// INPUT CHECKING - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Puts string into improper fraction
+    else if(slash) {
+
+        size_t slLoc = temp.find('/');
+
+        // Builds fraction part
+        std::string insert = temp.substr(0, slLoc);
+        std::string insertTwo = temp.substr(slLoc + 1);
+
+        x.set(atoi(insert.c_str()), atoi(insertTwo.c_str()));
+    }
+    // Sets only whole number
+    else {
+        x.set(atoi(temp.c_str()), 1);
+    }
+    return in;
+}
+
+/// @brief Checks input for errors and tracks existance of key characters
+///
+void mixedNumber::inputCheck(const std::string &temp, bool &slash, bool &underScore, bool &dash) {
+
     // Scans for all the edge cases and throws errors
     for(uint i = 0; i < temp.length(); ++i) {
 
         // throw if invalid character
-        if(!isdigit(temp[i]) && temp[i] != '.' && temp[i] != '_' && temp[i] != '/' && temp[i] != '-')
+        if(!isdigit(temp[i]) && temp[i] != '_' && temp[i] != '/' && temp[i] != '-')
             throw HAS_ALPHABET;
-        // throw if more than one dot
-        if(temp[i] == '.' && (dot || slash || underScore))
-            throw IMPROPER_SYMBOL_USE;
-        if(temp[i] == '.' && !dot)
-            dot = true;
 
         // throw if more than one slash
-        if(temp[i] == '/' && (dot || slash))
+        if(temp[i] == '/' && (slash))
             throw IMPROPER_SYMBOL_USE;
         if(temp[i] == '/' && !slash)
             slash = true;
 
         // throw if more than one underscore
-        if(temp[i] == '_' && (dot || slash || underScore))
+        if(temp[i] == '_' && (slash || underScore))
             throw IMPROPER_SYMBOL_USE;
         if(temp[i] == '_' && !underScore) {
             // Ensures there is a number before '_'
@@ -153,7 +182,7 @@ std::ostream &operator<<(std::ostream &out, const mixedNumber &x) {
         }
 
         // throw if more than one dash
-        if(temp[i] == '-' && (dash || dot || slash || underScore))
+        if(temp[i] == '-' && (dash || slash || underScore))
             throw IMPROPER_SYMBOL_USE;
         if(temp[i] == '-' && !dash) {
             // Ensures - is the first character
@@ -175,58 +204,4 @@ std::ostream &operator<<(std::ostream &out, const mixedNumber &x) {
     // Ensures final character is a digit
     if(!isdigit(temp[temp.length() - 1]))
         throw IMPROPER_SYMBOL_USE;
-
-
-    /// CONVERSIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    // Puts string into double
-    if(dot) {
-        double value;
-        std::stringstream ss;
-        ss << temp;
-        ss >> value;
-        x = Fraction(value);
-        return in;
-    }
-
-    // Puts string into mixed number
-    else if(underScore && slash) {
-
-        size_t uSLoc = temp.find('_');
-        size_t slLoc = temp.find('/');
-
-        // Builds the whole part
-        std::string insert = temp.substr(0, uSLoc);
-        if(dash)
-            insert = insert.substr(1);
-        mixedNumber tempMix(atoi(insert.c_str()));
-
-        // Builds fraction part
-        insert = temp.substr(uSLoc + 1, (slLoc - uSLoc - 1));
-
-        std::string insertTwo = temp.substr(slLoc + 1);
-        Fraction part(atoi(insert.c_str()), atoi(insertTwo.c_str()));
-
-        // Adds the two parts together
-        x = tempMix + part;
-        if(dash)
-            x *= -1;
-    }
-
-    // Puts string into improper fraction
-    else if(slash) {
-
-        size_t slLoc = temp.find('/');
-
-        // Builds fraction part
-        std::string insert = temp.substr(0, slLoc);
-        std::string insertTwo = temp.substr(slLoc + 1);
-
-        mixedNumber finalIn(0, atoi(insert.c_str()), atoi(insertTwo.c_str()));
-        x = finalIn;
-    }
-    else {
-        x = mixedNumber(atoi(temp.c_str()));
-    }
-    return in;
-}*/
+}
