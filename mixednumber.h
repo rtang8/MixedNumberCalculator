@@ -18,15 +18,18 @@ private:
     void copy(const mixedNumber& other);
     void copy(const Fraction& other);
     void inputCheck(const std::string &temp, bool &slash, bool &underScore, bool &dash);
+    int gcd(int p, int q) const;
 
 public:
     mixedNumber();
     ~mixedNumber();
+    mixedNumber(double value);
     mixedNumber(int whole, int num = 0, int denom = 1);
 
     mixedNumber(const Fraction &other);
     mixedNumber(const mixedNumber &other);
 
+    mixedNumber toFraction(const double &num);
     int getWhole() const;
     Fraction getFrac() const;
 

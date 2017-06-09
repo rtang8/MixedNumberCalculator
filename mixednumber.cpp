@@ -6,20 +6,14 @@ mixedNumber::mixedNumber() {}
 
 mixedNumber::~mixedNumber() {}
 
+mixedNumber::mixedNumber(double value) {
+    Fraction temp(toFraction(value));
+    set(temp.getNum(), temp.getDenom());
+}
+
 mixedNumber::mixedNumber(int whole, int num, int denom) {
     int neg = whole < 0 ? -1 : 1;
     set(neg * (denom * (whole * neg) + num), denom);
-}
-
-
-void mixedNumber::copy(const Fraction &other) {
-    //cout<<"Firing mixedNumber\'s fraction copy constructor"<<endl;
-    set(other.getNum(), other.getDenom());
-}
-
-void mixedNumber::copy(const mixedNumber &other) {
-    //cout<<"Firing mixedNumber\'s mixedNumber copy constructor"<<endl;
-    set(other.getNum(),other.getDenom());
 }
 
 mixedNumber::mixedNumber(const mixedNumber &other) {
@@ -30,15 +24,38 @@ mixedNumber::mixedNumber(const Fraction &other) {
     copy(other);
 }
 
+
 /// PRIVATE FUNCTIONS
 ///
-//void mixedNumber::copy(const Fraction &other) {
-//    m_whole = other.m_whole;
-//    m_frac = other.m_frac;
-//}
+void mixedNumber::copy(const Fraction &other) {
+    set(other.getNum(), other.getDenom());
+}
+
+void mixedNumber::copy(const mixedNumber &other) {
+    set(other.getNum(),other.getDenom());
+}
+
+int mixedNumber::gcd(int p, int q) const {
+    return q == 0 ? p : gcd(q, p % q);
+}
 
 /// PUBLIC FUNCTIONS
 ///
+
+mixedNumber mixedNumber::toFraction(const double &x) {
+    if(x == 0) {
+        return mixedNumber(0, 1);
+    }
+    else {
+        const long PERCISION = 1000000000;
+        double whole = std::floor(x);
+        double frac = x - whole;
+        int gcdenom = gcd(round(frac * PERCISION), PERCISION);
+        long den = PERCISION / gcdenom;
+        long num = round(frac * PERCISION) / gcdenom;
+        return Fraction((num+(den*whole)), den);
+    }
+}
 
 int mixedNumber::getWhole() const {
     return static_cast<int>(getNum() / getDenom());
@@ -84,7 +101,7 @@ std::ostream &operator<<(std::ostream &out, const mixedNumber &x) {
         // Prints in format : 3_4/5
         out << whole;
         if(num != 0)
-            out << '_' << Fraction(num,denom);
+            out << ' ' << Fraction(num,denom);
     }
     else
         out << Fraction(num,denom);
@@ -106,7 +123,7 @@ std::istream &operator>>(std::istream &in, mixedNumber &x) {
         in.get(ch);
     } while (ch != '\n' && !in.eof());
 
-    toString >> temp;
+    getline(toString, temp);
 
     // Throws error if input is too long
     if(&in == &std::cin && temp.length() > 15) throw INPUT_TOO_LONG;
@@ -120,7 +137,7 @@ std::istream &operator>>(std::istream &in, mixedNumber &x) {
     // Puts string into mixed number
     if(underScore && slash) {
 
-        size_t uSLoc = temp.find('_');
+        size_t uSLoc = temp.find(' ');
         size_t slLoc = temp.find('/');
 
         // Builds the whole part
@@ -162,7 +179,7 @@ void mixedNumber::inputCheck(const std::string &temp, bool &slash, bool &underSc
     for(uint i = 0; i < temp.length(); ++i) {
 
         // throw if invalid character
-        if(!isdigit(temp[i]) && temp[i] != '_' && temp[i] != '/' && temp[i] != '-')
+        if(!isdigit(temp[i]) && temp[i] != ' ' && temp[i] != '/' && temp[i] != '-')
             throw HAS_ALPHABET;
 
         // throw if more than one slash
@@ -172,9 +189,9 @@ void mixedNumber::inputCheck(const std::string &temp, bool &slash, bool &underSc
             slash = true;
 
         // throw if more than one underscore
-        if(temp[i] == '_' && (slash || underScore))
+        if(temp[i] == ' ' && (slash || underScore))
             throw IMPROPER_SYMBOL_USE;
-        if(temp[i] == '_' && !underScore) {
+        if(temp[i] == ' ' && !underScore) {
             // Ensures there is a number before '_'
             if(i == 0)
                 throw IMPROPER_SYMBOL_USE;
@@ -198,7 +215,7 @@ void mixedNumber::inputCheck(const std::string &temp, bool &slash, bool &underSc
 
     // Ensures something between underscore and slash
     if(underScore) {
-        if(temp.find('/') - temp.find('_') == 1)
+        if(temp.find('/') - temp.find(' ') == 1)
             throw IMPROPER_SYMBOL_USE;
     }
     // Ensures final character is a digit
