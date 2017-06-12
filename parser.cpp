@@ -34,6 +34,7 @@ Parser &Parser::operator<<(const std::string &in) {
     input = in;
     convert();
     evaluate();
+    return *this;
 }
 
 Parser &Parser::operator>>(std::string &out) {
