@@ -12,6 +12,7 @@ Fraction::~Fraction() {}
 Fraction::Fraction(int num, int denom) {
     m_num = num;
     m_denom = denom;
+    if(denom == 0) throw FRAC_BY_ZERO;
     reduce();
 }
 
@@ -24,6 +25,7 @@ Fraction::Fraction(const Fraction &other) {
 void Fraction::set(int n, int d) {
     m_num = n;
     m_denom = d;
+    if(d == 0) throw FRAC_BY_ZERO;
     reduce();
 }
 

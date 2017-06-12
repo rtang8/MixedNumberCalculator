@@ -121,11 +121,11 @@ void Parser::convert() {
                        // "mixed" is true when 2 # + space, ex. (1 2)
                        // "frac" is true after any other op besides another /
                        // "rBracket" so (3 + 4)/... isn't interpreted as a frac
-                if((mixed || frac) && !(rBracket) &&!(decimal)) {
+                if((mixed || frac) && !(rBracket) && !(decimal)) {
                     output.pop_back();
                     output += value;
                     // Temporarily appends an underscore for calculatation parsing
-                    // 2 2/3 --> 2_2/3 during calc --> 2 2/3 final print
+                    // 2 2/3 --> 2_2/3 during calc
                     if(output.find_last_of(' ') != std::string::npos && mixed)
                         output[output.find_last_of(' ')] = '_';
 
@@ -133,7 +133,7 @@ void Parser::convert() {
 
                     // Ensures you can't insert like '3/'
                     while(ss.peek() == ' ') { ss.get(); }
-                    if(!isdigit(ss.peek())) {
+                    if(!isdigit(ss.peek()) && ss.peek() != '(') {
                         cleanUp();
                         throw BAD_INPUT;
                     }
@@ -264,7 +264,19 @@ void Parser::evaluate() {
             converter.str(std::string());
             converter.clear();
             converter << temp;
-            converter >> convert;
+
+            // Try catch block ensures if user enters fraction where denom is 0
+            // Allows the cleanUp() func to run before throwing error to main
+            try {
+                converter >> convert;
+            }
+            catch (fractionErrors e) {
+                if(e == FRAC_BY_ZERO) {
+                    cleanUp();
+                    throw DIVIDE_BY_ZERO;
+                }
+            }
+
             accumulator.push(convert);
         }
 

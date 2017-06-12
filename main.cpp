@@ -19,7 +19,7 @@ int main() {
         try {
             process(input, output, finalAnswer);
             cout << "RPN Conversion: " << output << endl;
-            cout << "Answer: " << finalAnswer << endl;
+            cout << "Answer: " << finalAnswer << endl << endl;
         }
         catch (parserErrors e) {
             if(e == SIGN_STACKING)
@@ -36,9 +36,10 @@ int main() {
                 cout << "ERROR : Cannot have multiple decimals in a number." << endl;
             if(e == DIVIDE_BY_ZERO)
                 cout << "ERROR : Cannot divide by zero." << endl;
+            cout << endl;
         }
         catch (...) {
-            cout << "Unknown Error Occured." << endl;
+            cout << "Unknown Error Occured." << endl << endl;
         }
     }
     return 0;

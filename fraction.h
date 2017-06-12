@@ -6,6 +6,8 @@
 #include <cmath>
 #include <fstream>
 
+enum fractionErrors { FRAC_BY_ZERO };
+
 class Fraction {
 private:
     int m_num, m_denom;
