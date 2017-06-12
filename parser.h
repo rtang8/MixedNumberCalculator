@@ -6,13 +6,12 @@
 #include <sstream>
 #include <map>
 #include <iostream>
-#include <vector>
 
 
 #include "mixednumber.h"
 
 enum parserErrors{SIGN_STACKING, BAD_INPUT, IMPROPER_PARENTHESES, INVALID_CHAR,
-                  CONSECUTIVE_NUMBERS};
+                  CONSECUTIVE_NUMBERS, CONSECUTIVE_DECIMALS, DIVIDE_BY_ZERO};
 
 class Parser {
 public:
@@ -24,11 +23,14 @@ public:
     Parser &operator<<(const std::string &in);
     Parser &operator>>(std::string &out);
 
+    mixedNumber getAnswer() const;
+
 private:
     std::string input, output;
     std::stack<char> operatorStack;
     std::map<char, int> precedence;
-    std::vector<mixedNumber> tokens;
+    std::stack<mixedNumber> tokens;
+    std::stack<mixedNumber> accumulator;
     mixedNumber answer;
 
     void copy(const Parser &other);
@@ -37,6 +39,9 @@ private:
     void extract();
     void emptyOperatorStack();
 
+    void evaluate();
+    void clearAccumulator();
+    void popTwo(mixedNumber &first, mixedNumber &second);
 };
 
 #endif // PARSER_H

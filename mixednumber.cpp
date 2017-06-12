@@ -113,7 +113,7 @@ std::istream &operator>>(std::istream &in, mixedNumber &x) {
 
     // Throws away leading whitespaces
     char ch;
-    do { in.get(ch); } while(ch == ' ');
+    do { in.get(ch); } while (ch == ' ');
 
     // Converts user input into string
     std::stringstream toString;
@@ -129,13 +129,23 @@ std::istream &operator>>(std::istream &in, mixedNumber &x) {
     if(&in == &std::cin && temp.length() > 15) throw INPUT_TOO_LONG;
 
     // Checks input for all possible errors
-    bool slash = false, underScore = false, dash = false;
-    x.inputCheck(temp, slash, underScore, dash);
+    bool slash = false, underScore = false, dash = false, dot = false;
+    x.inputCheck(temp, slash, underScore, dash, dot);
 
     /// CONVERSIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+    // Converts decimal values
+    if(dot) {
+        double value;
+        std::stringstream ss;
+        ss << temp;
+        ss >> value;
+        mixedNumber y(value);
+        x = y;
+    }
+
     // Puts string into mixed number
-    if(underScore && slash) {
+    else if(underScore && slash) {
 
         size_t uSLoc = temp.find(' ');
         size_t slLoc = temp.find('/');
@@ -173,23 +183,29 @@ std::istream &operator>>(std::istream &in, mixedNumber &x) {
 
 /// @brief Checks input for errors and tracks existance of key characters
 ///
-void mixedNumber::inputCheck(const std::string &temp, bool &slash, bool &underScore, bool &dash) {
+void mixedNumber::inputCheck(const std::string &temp, bool &slash, bool &underScore,
+                             bool &dash, bool &dot) {
 
     // Scans for all the edge cases and throws errors
     for(uint i = 0; i < temp.length(); ++i) {
 
         // throw if invalid character
-        if(!isdigit(temp[i]) && temp[i] != ' ' && temp[i] != '/' && temp[i] != '-')
+        if(!isdigit(temp[i]) && temp[i] != ' ' && temp[i] != '/' && temp[i] != '-' && temp[i] != '.')
             throw HAS_ALPHABET;
 
+        if(temp[i] == '.' && (dot || slash || underScore))
+            throw IMPROPER_SYMBOL_USE;
+        if(temp[i] == '.' && !dot)
+            dot = true;
+
         // throw if more than one slash
-        if(temp[i] == '/' && (slash))
+        if(temp[i] == '/' && (dot || slash))
             throw IMPROPER_SYMBOL_USE;
         if(temp[i] == '/' && !slash)
             slash = true;
 
         // throw if more than one underscore
-        if(temp[i] == ' ' && (slash || underScore))
+        if(temp[i] == ' ' && (dot || slash || underScore))
             throw IMPROPER_SYMBOL_USE;
         if(temp[i] == ' ' && !underScore) {
             // Ensures there is a number before '_'
@@ -199,7 +215,7 @@ void mixedNumber::inputCheck(const std::string &temp, bool &slash, bool &underSc
         }
 
         // throw if more than one dash
-        if(temp[i] == '-' && (dash || slash || underScore))
+        if(temp[i] == '-' && (dot || dash || slash || underScore))
             throw IMPROPER_SYMBOL_USE;
         if(temp[i] == '-' && !dash) {
             // Ensures - is the first character
